@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -31,6 +32,7 @@ interface TrainingResult {
 type SortKey = keyof Pick<TrainingResult, "staff_id" | "full_name" | "department" | "acls_theory_marks" | "acls_practical_marks" | "bls_theory_marks" | "bls_practical_marks">
 
 export default function AdminPage() {
+  const router = useRouter()
   const [results, setResults] = useState<TrainingResult[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -204,6 +206,17 @@ export default function AdminPage() {
     [results],
   )
 
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/admin/logout", { method: "POST" })
+      if (!res.ok) throw new Error("Failed to log out")
+    } catch (error) {
+      console.error(error)
+    } finally {
+      router.push("/admin/login")
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -214,15 +227,20 @@ export default function AdminPage() {
               Manage ACLS / BLS training results for Gudele Hospital staff.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <div className="rounded-lg bg-white px-4 py-2 shadow-sm">
-              <p className="text-xs text-muted-foreground">Total Records</p>
-              <p className="text-lg font-semibold">{results.length}</p>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <div className="flex gap-3">
+              <div className="rounded-lg bg-white px-4 py-2 shadow-sm">
+                <p className="text-xs text-muted-foreground">Total Records</p>
+                <p className="text-lg font-semibold">{results.length}</p>
+              </div>
+              <div className="rounded-lg bg-white px-4 py-2 shadow-sm">
+                <p className="text-xs text-muted-foreground">Passing (&ge; 80%)</p>
+                <p className="text-lg font-semibold">{totalPassed}</p>
+              </div>
             </div>
-            <div className="rounded-lg bg-white px-4 py-2 shadow-sm">
-              <p className="text-xs text-muted-foreground">Passing (&ge; 80%)</p>
-              <p className="text-lg font-semibold">{totalPassed}</p>
-            </div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              Log out
+            </Button>
           </div>
         </header>
 
